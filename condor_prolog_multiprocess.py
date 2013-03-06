@@ -4,21 +4,22 @@ import subprocess, copy
 import os.path
 
 # Number of tests
-NumTests = 1 # This will be run multiple times per condor batch
+NumTests = 2 # This will be run multiple times per condor batch
 
 
-#executable      = """/usr/bin/sicstus"""
-executable  = """/usr/local/sicstus4.2.1/bin/sicstus"""
+executable      = """/usr/bin/sicstus"""
+#executable  = """/usr/local/sicstus4.2.1/bin/sicstus"""
 #directory = "'/vol/bitbucket/tr111/Prolog-War-of-Life/my_wol.pl'"
-script = "/home/thomas/Code/Prolog-War-of-Life/my_wol.pl"
+script = "/vol/bitbucket/tr111/Prolog-War-of-Life/my_wol.pl"
+#script = "/home/thomas/Code/Prolog-War-of-Life/my_wol.pl"
 execList      = [executable,
 					"-l", script, "--goal"]
 
 #arguments       = [""" -l '/vol/bitbucket/tr111/Prolog-War-of-Life/my_wol.pl' --goal 'test_strategy(#arg1, #arg2, #arg3).'"""]
 arguments       = [""" -l '/vol/bitbucket/tr111/Prolog-War-of-Life/my_wol.pl' --goal 'test_strategy(#arg1, #arg2, #arg3).'"""]
 
-# output_dir          = """/vol/bitbucket/tr111/Prolog-War-of-Life/Results_Condor/"""
-output_dir = """/home/thomas/Code/Prolog-War-of-Life/results"""
+output_dir          = """/vol/bitbucket/tr111/Prolog-War-of-Life/results/"""
+#output_dir = """/home/thomas/Code/Prolog-War-of-Life/results"""
 
 strategies = ["minimax", "bloodlust", "random", "land_grab", "self_preservation"]
 

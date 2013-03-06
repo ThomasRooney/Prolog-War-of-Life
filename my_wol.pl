@@ -211,18 +211,14 @@ minimax(PlayerColour, Board, NextBoard, PlayerMove) :-
   %% Look Ahead 1 :-
   calc_possible_moves(PlayerColour, Board, PossibleMoves),
   opposite_colour(PlayerColour, OpponentColour),
-  write('Starting findall 1\n'),
   findall([Move, CrankedBoard],       
           (
             %% For each of our moves, what would the opponent do?
             member(Move, PossibleMoves),
             run_move(PlayerColour, Board, Move, CrankedBoard),
-            write('.')
           ),
           CrankedMoveList),
-  write('\nFinished findall 1\n'),
   % Seperation of findall into two sections for better memory usage
-  write('Starting findall 2\n'),
   findall([Move, LookAheadBoard],       
         (
           %% For each of our moves, what would the opponent do?
@@ -230,21 +226,16 @@ minimax(PlayerColour, Board, NextBoard, PlayerMove) :-
           calc_possible_moves(OpponentColour, CrankedBoard, PossibleOpponentMoves),
           % Assume the opponent does minimax too
           pick_move_single_lookhead(OpponentColour, minimax_board_fitness,
-            CrankedBoard, PossibleOpponentMoves, LookAheadBoard, _),
-          write('.')
+            CrankedBoard, PossibleOpponentMoves, LookAheadBoard, _)
         ),
         PossibleMoveBoardList),
-  write('\nFinished findall 2\n'),
   %% Look through the moves, one move deep, for the best move via our fitness function.
-  write('Starting Second Lookahead\n'),
-  minimax_second_lookahead(PlayerColour, PossibleMoveBoardList, NextBoard, PlayerMove),
-  write('\nFinished Second Lookahead\n').
+  minimax_second_lookahead(PlayerColour, PossibleMoveBoardList, NextBoard, PlayerMove).
 %% Base case, only one move.
 minimax_second_lookahead(_, [[Move, Board]], Board, Move).
 
 %% Recursive Case, top of two moves
 minimax_second_lookahead(PlayerColour, [[MoveA1, BoardA],[MoveB1, BoardB]| MoveBoardTail], NewBoard, NewMove) :-
-  write('.'),
   calc_possible_moves(PlayerColour, BoardA, PossibleMovesA),
   calc_possible_moves(PlayerColour, BoardB, PossibleMovesB),
   %% Run each move

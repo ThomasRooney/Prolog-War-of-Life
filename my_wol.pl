@@ -215,7 +215,7 @@ minimax(PlayerColour, Board, NextBoard, PlayerMove) :-
           (
             %% For each of our moves, what would the opponent do?
             member(Move, PossibleMoves),
-            run_move(PlayerColour, Board, Move, CrankedBoard),
+            run_move(PlayerColour, Board, Move, CrankedBoard)
           ),
           CrankedMoveList),
   % Seperation of findall into two sections for better memory usage

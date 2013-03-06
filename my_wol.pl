@@ -80,15 +80,174 @@ mean(ListVals, Mean) :-
 %% Utility function
 % calculate possible moves for a given Player
 calc_possible_moves(P, [BlueCells, RedCells], PossibleMoves) :-
+  (P == 'r' -> PlayerCells = RedCells;
+              PlayerCells = BlueCells),
   findall([A, B, NewA, NewB],
-       (member([A, B], P),
-        neighbour_position(A,B,[NewA,NewB]), % 
+       (member([A, B], PlayerCells),
+        neighbour_position(A, B, [NewA, NewB]), % 
         \+ member([NewA, NewB], RedCells),  % Can't occupy an occupied cell
         \+ member([NewA, NewB], BlueCells)),
-        PossMoves),
+        PossibleMoves).
 
+run_move('r', [BlueCells, RedCells], Move, CrankedNewBoard) :-
+  alter_board(Move, RedCells, NewRedCells),
+  next_generation([BlueCells, NewRedCells], CrankedNewBoard).
+  
+run_move('b', [BlueCells, RedCells], Move, CrankedNewBoard) :-
+  alter_board(Move, BlueCells, NewBlueCells),
+  next_generation([NewBlueCells, RedCells], CrankedNewBoard).
+
+
+%% Trace through all neighbour positons of a given A,B cell
+% neighbour_position -- Realised Unneeded as it's already implemented
+% neighbour_position(X, Y, NewX, NewY) :-
+%   (X = NewX; X + 1 = NewX; X - 1 = NewX),
+%   (Y = NewY; Y + 1 = NewY; Y - 1 = NewY),
+%   NewX >= 0, NewX =< 8, NewY >= 0, NewY =< 8.
+
+
+%%%%%
+%% Utility Function for 1-Look-Ahead Strategies
+
+%% Base case
+pick_move_single_lookhead(PlayerColour, _, Board, [Move], CrankedNewBoard, [Move]) :-
+  run_move(PlayerColour, Board, Move, CrankedNewBoard).
+
+%% Recursive case  
+pick_move_single_lookhead(PlayerColour, StategyBoardFitnessFunction, Board, [MoveA, MoveB | MoveList], CrankedNewBoard, ChosenMove) :-
+  run_move(PlayerColour, Board, MoveA, CrankedNewBoardA),
+  run_move(PlayerColour, Board, MoveB, CrankedNewBoardB),
+  % Compare the two board states
+  board_fitness_function(PlayerColour, StategyBoardFitnessFunction, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove),
+  % Recurse Down
+  pick_move_single_lookhead(PlayerColour, StategyBoardFitnessFunction, Board, [BestMove | MoveList], CrankedNewBoard, ChosenMove).
+
+%% Support for 1 ply Strategies
+board_fitness_function(PlayerColour, bloodlust_board_fitness, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove) :-
+  bloodlust_board_fitness(PlayerColour, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove).
+board_fitness_function(PlayerColour, self_preservation_board_fitness, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove) :-
+  self_preservation_board_fitness(PlayerColour, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove).
+board_fitness_function(PlayerColour, land_grab_board_fitness, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove) :-
+  land_grab_board_fitness(PlayerColour, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove).
+board_fitness_function(PlayerColour, minimax_board_fitness, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove) :-
+  minimax_board_fitness(PlayerColour, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove).
+
+opposite_colour('r', 'b').
+opposite_colour('b', 'r').
+%%%%%
+
+
+%%%%%%%%
 %% Bloodlust Strategy
 
-bloodlust(PlayerColour, [BlueCells,RedCells], NextBoard, PlayerMove) :-
-  calc_possible_moves(PlayerColour, BoardState, PossibleMoves),
+bloodlust(PlayerColour, Board, NextBoard, PlayerMove) :-
+  calc_possible_moves(PlayerColour, Board, PossibleMoves),
+  pick_move_single_lookhead(PlayerColour, bloodlust_board_fitness, Board, PossibleMoves, NextBoard, PlayerMove).
+
+%% Fitness function
+bloodlust_board_fitness('b', MoveA, [_, RedA], MoveB, [_, RedB], BestMove) :-
+  length(RedA, CountRedA),
+  length(RedB, CountRedB),
+  (CountRedA < CountRedB -> BestMove = MoveA; BestMove = MoveB).
+
+bloodlust_board_fitness('r', MoveA, [BlueA, _], MoveB, [BlueB, _], BestMove) :-
+  length(BlueA, CountBlueA),
+  length(BlueB, CountBlueB),
+  (CountBlueA < CountBlueB -> BestMove = MoveA; BestMove = MoveB).
+%%%%%%%%%%%%%%%%
+%%%%%%%%
+%% Self Preservation strategy
+%%%%%%%%
+
+self_preservation(PlayerColour, Board, NextBoard, PlayerMove) :-
+  calc_possible_moves(PlayerColour, Board, PossibleMoves),
+  pick_move_single_lookhead(PlayerColour, self_preservation_board_fitness, Board, PossibleMoves, NextBoard, PlayerMove).
+
+%% Fitness function
+self_preservation_board_fitness('r', MoveA, [_, RedA], MoveB, [_, RedB], BestMove) :-
+  length(RedA, CountRedA),
+  length(RedB, CountRedB),
+  (CountRedA > CountRedB -> BestMove = MoveA; BestMove = MoveB).
+
+self_preservation_board_fitness('b', MoveA, [BlueA, _], MoveB, [BlueB, _], BestMove) :-
+  length(BlueA, CountBlueA),
+  length(BlueB, CountBlueB),
+  (CountBlueA > CountBlueB -> BestMove = MoveA; BestMove = MoveB).
+%%%%%%%%%%%%%%%%
+%%%%%%%%
+%% Land Grab strategy
+%%%%%%%%
+
+land_grab(PlayerColour, Board, NextBoard, PlayerMove) :-
+  calc_possible_moves(PlayerColour, Board, PossibleMoves),
+  pick_move_single_lookhead(PlayerColour, land_grab_board_fitness, Board, PossibleMoves, NextBoard, PlayerMove).
+
+%% Fitness function
+land_grab_board_fitness('r', MoveA, [BlueA, RedA], MoveB, [BlueB, RedB], BestMove) :-
+  length(RedA, CountRedA),
+  length(BlueA, CountBlueA),
+  length(RedB, CountRedB),
+  length(BlueB, CountBlueB),
+  FitnessA is CountRedA - CountBlueA,
+  FitnessB is CountRedB - CountBlueB,
+  (FitnessA > FitnessB -> BestMove = MoveA; BestMove = MoveB).
+
+land_grab_board_fitness('b', MoveA, [BlueA, RedA], MoveB, [BlueB, RedB], BestMove) :-
+  length(RedA, CountRedA),
+  length(BlueA, CountBlueA),
+  length(RedB, CountRedB),
+  length(BlueB, CountBlueB),
+  FitnessA is CountBlueA - CountRedA,
+  FitnessB is CountBlueB - CountRedB,
+  (FitnessA > FitnessB -> BestMove = MoveA; BestMove = MoveB).
+%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%
+%%%%%%%%
+%% Naiive Minimax strategy
+%%%%%%%%
+
+minimax(PlayerColour, Board, NextBoard, PlayerMove) :-
+  %% Look Ahead 1 :-
+  findall([Move, LookAheadBoard],
+         %% For each of our moves
+          (
+            calc_possible_moves(PlayerColour, Board, PossibleMoves),
+            member(PossibleMoves, Move),
+            run_move(PlayerColour, Board, Move, CrankedBoard),
+            opposite_colour(PlayerColour, OpponentColour),
+            calc_possible_moves(OpponentColour, CrankedBoard, PossibleOpponentMoves),
+            % Assume the opponent does minimax too (but single lookahead to stop recursion)
+            pick_move_single_lookhead(OpponentColour, minimax_board_fitness, CrankedBoard, PossibleOpponentMoves, LookAheadBoard, OpponentMove),
+          ),
+          PossibleMoveBoardList),
+  minimax_second_lookahead(PlayerColour, PossibleMoveBoardList, NextBoard, PlayerMove).
+
+%% Base case, only one move.
+minimax_second_lookahead(_, [Move, Board], Board, Move).
+
+%% Recursive Case, top of two moves
+minimax_second_lookahead(PlayerColour, [[MoveA1, BoardA],[MoveB1, BoardB]| MoveBoardTail], NewBoard, NewMove) :-
+  calc_possible_moves(PlayerColour, BoardA, PossibleMovesA),
+  calc_possible_moves(PlayerColour, BoardB, PossibleMovesB),
+  %% Run each move
+  pick_move_single_lookhead(PlayerColour, minimax_board_fitness, BoardA, PossibleMovesA, BoardA2, MoveA2),
+  pick_move_single_lookhead(PlayerColour, minimax_board_fitness, BoardB, PossibleMovesB, BoardB2, MoveB2),
+  %% Compare board_fitness_function
+  minimax_board_fitness(PlayerColour, MoveA2, BoardA2, MoveB2, BoardB2, BestMove),
+  (BestMove == MoveA2 -> 
+    minimax_second_lookahead(PlayerColour, [[MoveA1, BoardA]| MoveBoardTail], NewBoard, NewMove)
+    ;
+    minimax_second_lookahead(PlayerColour, [[MoveB1, BoardB]| MoveBoardTail], NewBoard, NewMove)).
+
+
+
+
+  minimax_board_fitness(PlayerColour, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove)
+  minimax_second_lookahead()
+
+%% Fitness function is the same as land_grab's fitness function
+minimax_board_fitness(PlayerColour, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove) :-
+  land_grab_board_fitness(PlayerColour, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove).
+
+%%%%%%%%%%%%%%%%
 

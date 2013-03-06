@@ -238,7 +238,7 @@ minimax(PlayerColour, Board, NextBoard, PlayerMove) :-
   %% Look through the moves, one move deep, for the best move via our fitness function.
   write('Starting Second Lookahead\n'),
   minimax_second_lookahead(PlayerColour, PossibleMoveBoardList, NextBoard, PlayerMove),
-  write('\nFinished Second Lookahead').
+  write('\nFinished Second Lookahead\n').
 %% Base case, only one move.
 minimax_second_lookahead(_, [[Move, Board]], Board, Move).
 

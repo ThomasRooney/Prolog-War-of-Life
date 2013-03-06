@@ -24,7 +24,7 @@ test_strategy(N, FirstPlayerStrategy, SecondPlayerStrategy) :-
   write('Shortest Game: '), write(ShortestGame), write(' moves\n'),
   write('Average Game Length: '), write(AverageGameLength), write(' moves \n'),
   write('Average Game Time: '), write(AverageGameTime), write(' seconds \n'),
-  write('-------------------------------'), write('\n'), halt.
+  write('-------------------------------'), write('\n').
 
 play_list(0, _, _, [], [], []).
 

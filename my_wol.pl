@@ -111,7 +111,7 @@ run_move('b', [BlueCells, RedCells], Move, CrankedNewBoard) :-
 %% Utility Function for 1-Look-Ahead Strategies
 
 %% Base case
-pick_move_single_lookhead(PlayerColour, _, Board, [Move], CrankedNewBoard, [Move]) :-
+pick_move_single_lookhead(PlayerColour, _, Board, [Move], CrankedNewBoard, Move) :-
   run_move(PlayerColour, Board, Move, CrankedNewBoard).
 
 %% Recursive case  
@@ -215,7 +215,7 @@ minimax(PlayerColour, Board, NextBoard, PlayerMove) :-
   findall([Move, CrankedBoard],       
           (
             %% For each of our moves, what would the opponent do?
-            member(PossibleMoves, Move),
+            member(Move, PossibleMoves),
             run_move(PlayerColour, Board, Move, CrankedBoard),
             write('.')
           ),
@@ -226,7 +226,7 @@ minimax(PlayerColour, Board, NextBoard, PlayerMove) :-
   findall([Move, LookAheadBoard],       
         (
           %% For each of our moves, what would the opponent do?
-          member(CrankedMoveList, [Move, CrankedBoard]),
+          member([Move, CrankedBoard], CrankedMoveList),
           calc_possible_moves(OpponentColour, CrankedBoard, PossibleOpponentMoves),
           % Assume the opponent does minimax too
           pick_move_single_lookhead(OpponentColour, minimax_board_fitness,
@@ -236,12 +236,15 @@ minimax(PlayerColour, Board, NextBoard, PlayerMove) :-
         PossibleMoveBoardList),
   write('\nFinished findall 2\n'),
   %% Look through the moves, one move deep, for the best move via our fitness function.
-  minimax_second_lookahead(PlayerColour, PossibleMoveBoardList, NextBoard, PlayerMove).
+  write('Starting Second Lookahead\n'),
+  minimax_second_lookahead(PlayerColour, PossibleMoveBoardList, NextBoard, PlayerMove),
+  write('\nFinished Second Lookahead').
 %% Base case, only one move.
-minimax_second_lookahead(_, [Move, Board], Board, Move).
+minimax_second_lookahead(_, [[Move, Board]], Board, Move).
 
 %% Recursive Case, top of two moves
 minimax_second_lookahead(PlayerColour, [[MoveA1, BoardA],[MoveB1, BoardB]| MoveBoardTail], NewBoard, NewMove) :-
+  write('.'),
   calc_possible_moves(PlayerColour, BoardA, PossibleMovesA),
   calc_possible_moves(PlayerColour, BoardB, PossibleMovesB),
   %% Run each move

@@ -209,17 +209,20 @@ land_grab_board_fitness('b', MoveA, [BlueA, RedA], MoveB, [BlueB, RedB], BestMov
 minimax(PlayerColour, Board, NextBoard, PlayerMove) :-
   %% Look Ahead 1 :-
   findall([Move, LookAheadBoard],
-         %% For each of our moves
+         
           (
+            %% For each of our moves, what would the opponent do?
             calc_possible_moves(PlayerColour, Board, PossibleMoves),
             member(PossibleMoves, Move),
             run_move(PlayerColour, Board, Move, CrankedBoard),
             opposite_colour(PlayerColour, OpponentColour),
             calc_possible_moves(OpponentColour, CrankedBoard, PossibleOpponentMoves),
-            % Assume the opponent does minimax too (but single lookahead to stop recursion)
-            pick_move_single_lookhead(OpponentColour, minimax_board_fitness, CrankedBoard, PossibleOpponentMoves, LookAheadBoard, OpponentMove),
+            % Assume the opponent does minimax too
+            pick_move_single_lookhead(OpponentColour, minimax_board_fitness,
+              CrankedBoard, PossibleOpponentMoves, LookAheadBoard, _)
           ),
           PossibleMoveBoardList),
+  %% Look through the moves, one move deep, for the best move via our fitness function.
   minimax_second_lookahead(PlayerColour, PossibleMoveBoardList, NextBoard, PlayerMove).
 
 %% Base case, only one move.
@@ -238,12 +241,6 @@ minimax_second_lookahead(PlayerColour, [[MoveA1, BoardA],[MoveB1, BoardB]| MoveB
     minimax_second_lookahead(PlayerColour, [[MoveA1, BoardA]| MoveBoardTail], NewBoard, NewMove)
     ;
     minimax_second_lookahead(PlayerColour, [[MoveB1, BoardB]| MoveBoardTail], NewBoard, NewMove)).
-
-
-
-
-  minimax_board_fitness(PlayerColour, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove)
-  minimax_second_lookahead()
 
 %% Fitness function is the same as land_grab's fitness function
 minimax_board_fitness(PlayerColour, MoveA, CrankedNewBoardA, MoveB, CrankedNewBoardB, BestMove) :-

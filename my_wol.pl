@@ -84,10 +84,11 @@ calc_possible_moves(P, [BlueCells, RedCells], PossibleMoves) :-
               PlayerCells = BlueCells),
   findall([A, B, NewA, NewB],
        (member([A, B], PlayerCells),
-        neighbour_position(A, B, [NewA, NewB]), % 
+        neighbour_position(A, B, [NewA, NewB]),
         \+ member([NewA, NewB], RedCells),  % Can't occupy an occupied cell
         \+ member([NewA, NewB], BlueCells)),
-        PossibleMoves).
+        PossibleMoves),
+  !.
 
 run_move('r', [BlueCells, RedCells], Move, CrankedNewBoard) :-
   alter_board(Move, RedCells, NewRedCells),
@@ -95,7 +96,7 @@ run_move('r', [BlueCells, RedCells], Move, CrankedNewBoard) :-
   
 run_move('b', [BlueCells, RedCells], Move, CrankedNewBoard) :-
   alter_board(Move, BlueCells, NewBlueCells),
-  next_generation([NewBlueCells, RedCells], CrankedNewBoard).
+  next_generation([NewBlueCells, RedCells], CrankedNewBoard), !.
 
 
 %% Trace through all neighbour positons of a given A,B cell
@@ -190,7 +191,7 @@ land_grab_board_fitness('r', MoveA, [BlueA, RedA], MoveB, [BlueB, RedB], BestMov
   length(BlueB, CountBlueB),
   FitnessA is CountRedA - CountBlueA,
   FitnessB is CountRedB - CountBlueB,
-  (FitnessA > FitnessB -> BestMove = MoveA; BestMove = MoveB).
+  (FitnessA >= FitnessB -> BestMove = MoveA; BestMove = MoveB).
 
 land_grab_board_fitness('b', MoveA, [BlueA, RedA], MoveB, [BlueB, RedB], BestMove) :-
   length(RedA, CountRedA),
@@ -199,7 +200,7 @@ land_grab_board_fitness('b', MoveA, [BlueA, RedA], MoveB, [BlueB, RedB], BestMov
   length(BlueB, CountBlueB),
   FitnessA is CountBlueA - CountRedA,
   FitnessB is CountBlueB - CountRedB,
-  (FitnessA > FitnessB -> BestMove = MoveA; BestMove = MoveB).
+  (FitnessA >= FitnessB -> BestMove = MoveA; BestMove = MoveB).
 %%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%
 %%%%%%%%
@@ -208,23 +209,34 @@ land_grab_board_fitness('b', MoveA, [BlueA, RedA], MoveB, [BlueB, RedB], BestMov
 
 minimax(PlayerColour, Board, NextBoard, PlayerMove) :-
   %% Look Ahead 1 :-
-  findall([Move, LookAheadBoard],
-         
+  calc_possible_moves(PlayerColour, Board, PossibleMoves),
+  opposite_colour(PlayerColour, OpponentColour),
+  write('Starting findall 1\n'),
+  findall([Move, CrankedBoard],       
           (
             %% For each of our moves, what would the opponent do?
-            calc_possible_moves(PlayerColour, Board, PossibleMoves),
             member(PossibleMoves, Move),
             run_move(PlayerColour, Board, Move, CrankedBoard),
-            opposite_colour(PlayerColour, OpponentColour),
-            calc_possible_moves(OpponentColour, CrankedBoard, PossibleOpponentMoves),
-            % Assume the opponent does minimax too
-            pick_move_single_lookhead(OpponentColour, minimax_board_fitness,
-              CrankedBoard, PossibleOpponentMoves, LookAheadBoard, _)
+            write('.')
           ),
-          PossibleMoveBoardList),
+          CrankedMoveList),
+  write('\nFinished findall 1\n'),
+  % Seperation of findall into two sections for better memory usage
+  write('Starting findall 2\n'),
+  findall([Move, LookAheadBoard],       
+        (
+          %% For each of our moves, what would the opponent do?
+          member(CrankedMoveList, [Move, CrankedBoard]),
+          calc_possible_moves(OpponentColour, CrankedBoard, PossibleOpponentMoves),
+          % Assume the opponent does minimax too
+          pick_move_single_lookhead(OpponentColour, minimax_board_fitness,
+            CrankedBoard, PossibleOpponentMoves, LookAheadBoard, _),
+          write('.')
+        ),
+        PossibleMoveBoardList),
+  write('\nFinished findall 2\n'),
   %% Look through the moves, one move deep, for the best move via our fitness function.
   minimax_second_lookahead(PlayerColour, PossibleMoveBoardList, NextBoard, PlayerMove).
-
 %% Base case, only one move.
 minimax_second_lookahead(_, [Move, Board], Board, Move).
 

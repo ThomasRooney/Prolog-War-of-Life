@@ -1,0 +1,230 @@
+\documentclass[a4wide, 11pt]{article}
+\usepackage{a4, fullpage}
+\newcommand{\tab}{\hspace*{2em}}
+\usepackage[margin=2cm]{geometry}
+\newcommand{\tx}{\texttt}
+
+\begin{document}
+
+\title{AI Coursework}
+\author{Thomas Rooney}
+\date{\today}
+\maketitle
+
+\begin{verbatim}
+        Introduction to Artificial Intelligence Coursework[1]
+
+       (Submission by groups of two students allowed/welcome)
+                  Due date: Thursday 7  March 2013
+        Electronic submission (code + this worksheet) on CATE
+\end{verbatim}
+
+\begin{enumerate}
+\item  Introduction
+\end{enumerate}
+
+We will be looking at a two player board game called ``war of life''
+which will be played on an 8x8 board. Player 1 will start with a random
+configuration of 12 blue pieces and player 2 will start with a similar
+random configuration of 12 red pieces. An example initial configuration
+might be (where b stands for ``blue piece'' and r stands for ``red
+piece''):
+
+\textbar{} \textbar{} The game terminates as follows: • If at some stage
+no (red or blue) pieces at all are left on the board, then the game is
+drawn. • If, when it is his/her turn, a player cannot move anywhere,
+then the game is declared a stalemate and is drawn. • If one player has
+no pieces left on the board, then that player loses and the other player
+wins. • If the game lasts for 250 moves without a winner, then it is
+declared an exhausted draw.
+
+Part 1 -- Getting to know the Game
+
+Question 1
+
+\textbar{} \textbar{}
+
+Board states are represented in the program as pairs of lists, where the
+first list contains the co-ordinates of all the alive blue pieces and
+the second list contains the co-ordinates of all the alive red pieces.
+For example, this is a simple board state with two alive blues and one
+alive red:
+
+{[}{[}{[}3,4{]},{[}5,7{]}{]},{[}{[}8,8{]}{]}{]}
+
+Question 2
+
+In the box below, write down the Prolog representation for the initial
+board state given in question 1.
+
+\textbar{} \textbar{}
+
+Use this representation, and the predicate
+
+next\_generation(+BoardState, -NextGenerationBoardState)
+
+to check whether your answer for question 1 was correct. If it is, then
+run a further two generations, and put the resulting board states in the
+tables below:
+
+\textbar{} \textbar{}1 \textbar{} \textbar{}Number of wins for player 1
+(blue) \textbar{} \textbar{} \textbar{}Number of wins for player 2 (red)
+\textbar{} \textbar{} \textbar{}Longest (non-exhaustive) game \textbar{}
+\textbar{} \textbar{}Shortest game \textbar{} \textbar{}
+\textbar{}Average game length (including \textbar{} \textbar{}
+\textbar{}exhaustives) \textbar{} \textbar{} \textbar{}Average game time
+\textbar{} \textbar{}
+
+Question 4
+
+Does it look like there is any advantage to playing first if both
+players choose moves randomly? Answer in the space below.
+
+Part 2 -- Implementing Strategies
+
+In this part, we will be implementing search strategies in order to
+improve a war of life playing agent's performance. They already have one
+strategy: random, which chooses any piece randomly and moves it
+randomly. The question is: can we implement any strategy which
+out-performs this one?
+
+We will look at four strategies:
+
+Bloodlust: This strategy chooses the next move for a player to be the
+one which (after Conway's crank) produces the board state with the
+fewest number of opponent's pieces on the board (ignoring the player's
+own pieces).
+
+Self Preservation: This strategy chooses the next move for a player to
+be the one which (after Conway's crank) produces the board state with
+the largest number of that player's pieces on the board (ignoring the
+opponent's pieces).
+
+Land Grab: This strategy chooses the next move for a player to be the
+one which (after Conway's crank) produces the board state which
+maximises this function: Number of Player's pieces -- Number of
+Opponent's pieces.
+
+Minimax: This strategy looks two-ply ahead using the heuristic measure
+described in the Land Grab strategy. It should follow the minimax
+principle and take into account the opponent's move after the one being
+chosen for the current player.
+
+In your file my\_wol.pl, write five predicates:
+
+bloodlust(+PlayerColour, +CurrentBoardState, -NewBoardState, -Move).
+self\_preservation(+PlayerColour, +CurrentBoardState, -NewBoardState,
+-Move). land\_grab(+PlayerColour, +CurrentBoardState, -NewBoardState,
+-Move). minimax(+PlayerColour, +CurrentBoardState, -NewBoardState,
+-Move).
+
+These predicates will implement the four strategies described above by
+choosing the next move for a player. They will all do the same thing:
+choose the next move for the player. PlayerColour will either be the
+constant b for blue or r for red. The CurrentBoardState will be the
+state of the board upon which the move choice is going to be made. The
+predicate will produce a NewBoardState, in the usual representation
+(pair of lists) which will represent the board state after the move, but
+before Conway's crank is turned. The predicate will also return the Move
+that changed the current to the new board state. This will be
+represented as a list {[}r1,c1,r2,c2{]} where the move chosen is to move
+the piece at co-ordinate (r1, c1) to the empty cell at co-ordinate (r2,
+c2).
+
+It should be possible to run these strategies in the same way as the
+random strategy, using the constants bloodlust, self\_preservation,
+land\_grab. For example, if you load war\_of\_life.pl and my\_wol.pl
+into Prolog, then type the query:
+
+play(verbose, bloodlust, land\_grab, NumberOfMoves, WinningPlayer).
+
+this will play a game in which player 1 uses the bloodlust strategy and
+player 2 uses the land\_grab strategy. Check that this is working OK by
+running a few games with different strategy pairings.
+
+Part 3 -- A Tournament
+
+Question 6
+
+We want to know which, if any, strategy is the best for playing this
+game, and we'll do this by using a tournament. Play as many games as
+time will allow for each pairing of strategies, and fill in the table
+over the page.
+
+Question 7
+
+If both players have the same strategy, for which strategies does it
+appear that playing first is an advantage/disadvantage? Answer in the
+space below:
+
+Question 8
+
+Imagine playing football in a gale force wind and where the pitch is
+extremely muddy. Here, it is hardly worth the players kicking the ball,
+because the environment plays too big a factor in the game. What
+evidence do you have against the claim that the environment plays a
+bigger part than the movement of pieces in the war of life game? The
+environment here is Conway's Crank, which is beyond the control of the
+players. Answer in the space below:
+
+Submitting Your Work
+
+Electronic submission: submit a zipped directory WOL.zip containing 1) a
+my\_wol.pl file and 2) a file worksheet.pdf (your completed version of
+this worksheet).
+
+Note: my\_wol.pl should run under Sicstus on the lab machines -- do not
+use SWI or other Prologs!
+
+\textbar{}P1 strategy \textbar{}P2 strategy \textbar{}Games \textbar{}P1
+\textbar{}P2 \textbar{}Draws \textbar{}Av. \textbar{}Av. Game\textbar{}
+\textbar{} \textbar{} \textbar{}Played\textbar{}wins \textbar{}wins
+\textbar{} \textbar{}Game \textbar{}Time \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}length
+\textbar{} \textbar{} \textbar{}Random \textbar{}Bloodlust \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{}Random \textbar{}Self Preservation\textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}Random
+\textbar{}Land Grab \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{}Random \textbar{}Minimax
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{}Bloodlust \textbar{}Random \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{}Bloodlust \textbar{}Bloodlust \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{}Bloodlust
+\textbar{}Self Preservation\textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{}Bloodlust \textbar{}Land Grab
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{}Bloodlust \textbar{}Minimax \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}Self
+Preservation\textbar{}Random \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{}Self
+Preservation\textbar{}Bloodlust \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{}Self
+Preservation\textbar{}Self Preservation\textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{}Self
+Preservation\textbar{}Land Grab \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{}Self
+Preservation\textbar{}Minimax \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{}Land Grab
+\textbar{}Random \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{}Land Grab \textbar{}Bloodlust \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{}Land Grab \textbar{}Self Preservation\textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}Land
+Grab \textbar{}Land Grab \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{}Land Grab \textbar{}Minimax
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{}Minimax \textbar{}Random \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}Minimax
+\textbar{}Bloodlust \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{}Minimax \textbar{}Self
+Preservation\textbar{} \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{}Minimax \textbar{}Land Grab \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{} \textbar{} \textbar{}
+\textbar{}Minimax \textbar{}Minimax \textbar{} \textbar{} \textbar{}
+\textbar{} \textbar{} \textbar{} \textbar{}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+\end{document}

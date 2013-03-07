@@ -32,6 +32,7 @@ def form_runList(arg1, arg2, arg3):
 
 def run_test(arg1, arg2, arg3, outFile):
 	proc = subprocess.Popen(form_runList(arg1,arg2,arg3), stdout=outFile, shell=False)
+	proc.wait()
 
 def run_tests():
 	for strat1 in strategies:

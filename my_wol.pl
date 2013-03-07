@@ -1,6 +1,21 @@
 :- ensure_loaded( 'war_of_life.pl'),
    use_module(library(system)).
 
+%%%%
+%% Because this is tested in parallel, we must perform a setrand, from a 
+%% seed. This was found here: http://www.inf.ed.ac.uk/teaching/courses/aipp/material/puzzle_template.pl
+
+
+initialise_randomness :-
+   datime(datime(_, _, _, Hour, Minute, Second)),
+   NormalHour is integer(((Hour / 24) * 30000) + 1),
+   NormalMinute is integer(((Minute / 60) * 30000) + 1),
+   NormalSecond is integer(((Second / 60) * 30000) + 1),
+   Seed is NormalSecond + NormalMinute + NormalHour,
+   setrand(Seed).
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Question 3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -8,6 +23,7 @@
 % Wrapper for play, run's multiple games
 test_strategy(N, FirstPlayerStrategy, SecondPlayerStrategy) :-
   integer(N),
+  initialise_randomness,
   write('--------- War of Life ---------'), write('\n'),
   write('First Player Strategy : '), write(FirstPlayerStrategy), write('\n'),
   write('Second Player Strategy: '), write(SecondPlayerStrategy), write('\n'),
@@ -15,13 +31,15 @@ test_strategy(N, FirstPlayerStrategy, SecondPlayerStrategy) :-
   count(b, WinnerList, P1Wins),
   count(r, WinnerList, P2Wins),
   count(draw, WinnerList, DrawCount),
+  count(stalemate, WinnerList, StaleMateCount),
+  DrawCountTotal is DrawCount + StaleMateCount,
   max(MovesList, LongestGame),
   min(MovesList, ShortestGame),
   mean(RunningTimeList, AverageGameTime),
   mean(MovesList, AverageGameLength),
   write('Player 1 Wins: '), write(P1Wins), write('\n'),
   write('Player 2 Wins: '), write(P2Wins), write('\n'),
-  write('Number of Draws: '), write(DrawCount), write('\n'),
+  write('Number of Draws: '), write(DrawCountTotal), write('\n'),
   write('Longest Game: '), write(LongestGame), write(' moves\n'),
   write('Shortest Game: '), write(ShortestGame), write(' moves\n'),
   write('Average Game Length: '), write(AverageGameLength), write(' moves \n'),

@@ -4,7 +4,7 @@ import subprocess, copy
 import os.path
 
 # Number of tests
-NumTests = 2 # This will be run multiple times per condor batch
+NumTests = 10 # This will be run multiple times per condor batch
 
 
 executable      = """/usr/bin/sicstus"""
